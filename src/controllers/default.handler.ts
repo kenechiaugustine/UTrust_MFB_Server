@@ -22,7 +22,7 @@ export const getAll =
       .paginate();
 
     const docs = await features.modelQuery;
-    if (!docs || docs.length == 0) throw new AppError('No record found', 400);
+    // if (!docs || docs.length == 0) throw new AppError('No record found', 400);
     return apiresponse(200, `All Record found`, docs, res);
   };
 

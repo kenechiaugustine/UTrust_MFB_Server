@@ -7,14 +7,23 @@ import { engine } from 'express-handlebars';
 import rateLimit from 'express-rate-limit';
 import 'express-async-errors';
 
+// IMPORTING ROUTERS
+import { authRouter } from './routes/auth.route';
+
 // @ts-ignore
 import xss from 'xss-clean';
+import { userRouter } from './routes/user.route';
+import { accountRouter } from './routes/account.route';
+import { transactionRouter } from './routes/transactions.route';
+import AppError from './errors/AppError';
+import { errorHandler } from './errors/error.controller';
 
 // INITIALIZE EXPRESS
 const app: Express = express();
 
 // MIDDLEWARE
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
+// app.set('trust proxy', ['127.0.0.1', '::1', '10.0.0.0/24', '203.0.113.0/24']);
 
 app.enable('view cache');
 
@@ -26,7 +35,7 @@ app.engine(
     defaultLayout: '_base',
     layoutsDir: path.join(__dirname, 'views'),
     partialsDir: path.join(__dirname, 'views/components'),
-  })
+  }),
 );
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
@@ -60,12 +69,6 @@ app.use(cookieParser());
 // Data sanitization against XSS
 app.use(xss());
 
-// IMPORTING ROUTERS
-
-import { authRouter } from './routes/auth.route';
-import { docRouter } from './routes/doc.route';
-import { CustomError, GlobalErrorHandler } from 'fashy-errors';
-
 // ROUTING / APP ENDPOINTS
 // Index Route || Views Route
 app.get('/', (req: Request, res: Response) => {
@@ -75,14 +78,14 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API ENDPOINTS
-// AUTH
-app.use('/api/auth', authRouter);
-// DOC
-app.use('/api/doc', docRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/account', accountRouter);
+app.use('/api/v1/transactions', transactionRouter);
 
 // 404 - ERROR HANDLING
 app.use((req: Request, res: Response, next: NextFunction) => {
-  throw new CustomError('Error occurred: Invalid Endpoint', 404);
+  throw new AppError('Error occurred: Invalid Endpoint', 404);
 });
 
 // OR
@@ -94,6 +97,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // app.use(koii);
 
 // Global Error Handler Middleware
-app.use(GlobalErrorHandler);
+app.use(errorHandler);
 
 export default app;

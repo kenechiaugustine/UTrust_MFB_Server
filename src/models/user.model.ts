@@ -21,6 +21,8 @@ export interface UserDoc extends mongoose.Document {
   email: string;
   password: string;
   correctPassword: any;
+  accountNumber: string;
+  accountBalance: number;
 }
 
 const userSchema = new Schema(
@@ -42,6 +44,15 @@ const userSchema = new Schema(
       trim: true,
       required: [true, 'Email is required'],
       validate: [validator.isEmail, 'Invalid email'],
+    },
+    accountNumber: {
+      type: String,
+      default: null,
+      unique: true,
+    },
+    accountBalance: {
+      type: Number,
+      default: 0,
     },
     isEmailVerified: {
       type: Boolean,
@@ -83,8 +94,14 @@ const userSchema = new Schema(
   {
     timestamps: true,
     collection: 'Users',
-  }
+  },
 );
+
+const generateAccountNumber = (): string => {
+  const min = 1000000000; // Minimum 10-digit number
+  const max = 9999999999; // Maximum 10-digit number
+  return Math.floor(Math.random() * (max - min + 1) + min).toString();
+};
 
 userSchema.pre('save', async function (next) {
   // Only run this function if password was actually modified
@@ -92,6 +109,23 @@ userSchema.pre('save', async function (next) {
 
   // Hash the password with cost of 12
   this.password = await bcrypt.hash(this.password, 12);
+
+  // Generate account number only when a new user is created (this.isNew is true)
+  if (this.isNew) {
+    let accountNumber: string = '';
+    let isAccountNumberUnique = false;
+
+    while (!isAccountNumberUnique) {
+      accountNumber = generateAccountNumber();
+      // Check if the generated account number already exists in the database.
+      const existingUser = await User.findOne({ accountNumber });
+      if (!existingUser) {
+        isAccountNumberUnique = true;
+      }
+    }
+
+    this.accountNumber = accountNumber;
+  }
 
   next();
 });
@@ -103,10 +137,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.methods.correctPassword = async function (
-  candidatePassword: string,
-  userPassword: string
-): Promise<boolean> {
+userSchema.methods.correctPassword = async function (candidatePassword: string, userPassword: string): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 

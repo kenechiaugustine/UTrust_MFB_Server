@@ -1,12 +1,7 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import AppError from './AppError';
 
-const sendError: ErrorRequestHandler = (
-  err: AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const sendError: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction) => {
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
@@ -16,12 +11,12 @@ const sendError: ErrorRequestHandler = (
 
   console.log(err);
   return res.status(500).json({
-    status: err.status,
+    status: 'failed',
     message: 'Something went very wrong!!!',
   });
 };
 
-export = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   let error = { ...err };
   error.message = err.message;
 
