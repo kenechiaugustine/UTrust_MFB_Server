@@ -9,6 +9,7 @@ interface UserAttrs {
   lastName: string;
   email: string;
   password: string;
+  authToken: string;
 }
 
 interface UserModel extends mongoose.Model<UserDoc> {
@@ -23,6 +24,7 @@ export interface UserDoc extends mongoose.Document {
   correctPassword: any;
   accountNumber: string;
   accountBalance: number;
+  authToken: string;
 }
 
 const userSchema = new Schema(
@@ -77,6 +79,10 @@ const userSchema = new Schema(
       required: [true, 'Password is required'],
       minlength: 4,
       select: false,
+    },
+    authToken: {
+      type: String,
+      default: null,
     },
     isActive: {
       type: Boolean,
