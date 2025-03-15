@@ -56,6 +56,7 @@ export const transferFunds = async (req: Request, res: Response) => {
   if (!sender) throw new AppError('Sender with id not found', 404);
   const receiver = await User.findOne({ accountNumber: receiverAccountNumber });
   if (!receiver) throw new AppError('Receiver account number is invalid', 404);
+  if(sender._id === receiver._id) throw new AppError(`You cannot transfer funds to yourself`, 400)
   if (sender.accountBalance < amount) throw new AppError('Insufficient funds', 400);
   const senderPrevBalance = sender.accountBalance;
   const receiverPrevBalance = receiver.accountBalance;
