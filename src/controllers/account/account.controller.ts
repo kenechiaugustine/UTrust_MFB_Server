@@ -82,5 +82,5 @@ export const transferFunds = async (req: Request, res: Response) => {
     modeOfTransaction: 'transfer',
   });
 
-  return apiresponse(200, 'Transfer successful', true, res);
+  return apiresponse(200, 'Transfer successful', sender, res);
 };
