@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { engine } from 'express-handlebars';
 import rateLimit from 'express-rate-limit';
 import 'express-async-errors';
+import koii from 'koii';
 
 // IMPORTING ROUTERS
 import { authRouter } from './routes/auth.route';
@@ -94,7 +95,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 //     throw new CustomError("Error occurred: Invalid Endpoint", 404)
 // })
 
-// app.use(koii);
+app.use(koii);
 
 // Global Error Handler Middleware
 app.use(errorHandler);

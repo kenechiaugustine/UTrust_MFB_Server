@@ -21,7 +21,7 @@ DatabaseConnection;
 const PORT = process.env.PORT || 4001;
 // Server Start
 server.listen(PORT, () =>
-  console.log(`🚀 Application running on port: ${PORT}...`)
+  console.log(`🚀 Application running on http://localhost:${PORT}`)
 );
 
 process.on('unhandledRejection', (err) => {
