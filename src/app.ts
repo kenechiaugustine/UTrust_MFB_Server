@@ -8,9 +8,12 @@ import rateLimit from 'express-rate-limit';
 import 'express-async-errors';
 import koii from 'koii';
 
+// Swagger Imports
+import { swaggerSpec } from './config/swagger.config'; // Adjust path if needed
+import swaggerUi from 'swagger-ui-express';
+
 // IMPORTING ROUTERS
 import { authRouter } from './routes/auth.route';
-
 // @ts-ignore
 import xss from 'xss-clean';
 import { userRouter } from './routes/user.route';
@@ -22,13 +25,9 @@ import { errorHandler } from './errors/error.controller';
 // INITIALIZE EXPRESS
 const app: Express = express();
 
-// MIDDLEWARE
-// app.set('trust proxy', true);
-// app.set('trust proxy', ['127.0.0.1', '::1', '10.0.0.0/24', '203.0.113.0/24']);
-
+// ... (all your existing middleware like view engine, cors, helmet, etc.)
+// KEEP ALL THE MIDDLEWARE FROM YOUR ORIGINAL FILE HERE
 app.enable('view cache');
-
-/////////// VIEW ENGINE ///////////
 app.engine(
   '.hbs',
   engine({
@@ -40,19 +39,11 @@ app.engine(
 );
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views'));
-
-/////////// STATIC FILES ///////////
 app.use(express.static(path.join(__dirname, 'public')));
-
-/////////// C O R S ///////////
 app.use(cors());
 //@ts-ignore
 app.options('*', cors());
-
-/////// SECURITY HTTP HEADERS ///////
 app.use(helmet());
-
-/////// Rate limiter ///////////////
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
@@ -60,15 +51,11 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again in an hour!',
 });
 app.use('/api', limiter);
-
-//////////// JSON ////////////
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
 app.use(cookieParser());
-
-// Data sanitization against XSS
 app.use(xss());
+
 
 // ROUTING / APP ENDPOINTS
 // Index Route || Views Route
@@ -77,6 +64,11 @@ app.get('/', (req: Request, res: Response) => {
     title: 'Home Page',
   });
 });
+
+// Swagger UI Route - must be before API routes if you have a catch-all
+//@ts-ignore
+app.use('/docs', ...swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // API ENDPOINTS
 app.use('/api/v1/auth', authRouter);
@@ -88,12 +80,6 @@ app.use('/api/v1/transactions', transactionRouter);
 app.use((req: Request, res: Response, next: NextFunction) => {
   throw new AppError('Error occurred: Invalid Endpoint', 404);
 });
-
-// OR
-
-// app.all('*', (req: Request, res: Response, next: NextFunction) => {
-//     throw new CustomError("Error occurred: Invalid Endpoint", 404)
-// })
 
 app.use(koii);
 
